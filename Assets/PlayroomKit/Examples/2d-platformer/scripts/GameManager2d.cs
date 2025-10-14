@@ -27,6 +27,14 @@ public class GameManager2d : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI scoreTextPlayer2;
     private TextMeshProUGUI selectedScoreText;
+    
+    // <summary>
+    // To display current player count
+    /// </summary>
+    
+    [Header("Player Count UI")]
+    [SerializeField]
+    private TextMeshProUGUI PlayerCountText;   
 
     private static bool playerJoined;
 
@@ -200,6 +208,9 @@ public class GameManager2d : MonoBehaviour
 
         playerJoined = true;
         player.OnQuit(RemovePlayer);
+
+        // Update player count UI
+          UpdatePlayerCountText();  
     }
 
     /// <summary>
@@ -213,11 +224,35 @@ public class GameManager2d : MonoBehaviour
             players.Remove(players.Find(p => p.id == playerID));
             playerGameObjects.Remove(player);
             Destroy(player);
+            
+            GameManager2d instance = FindObjectOfType<GameManager2d>();
+            if (instance != null)
+            {
+                instance.UpdatePlayerCountText();
+            }
+
         }
         else
         {
             Debug.LogWarning("Player is not in dictionary");
         }
     }
+
+    /// <summary>
+    /// Methode the player count text UI.
+    /// </summary>
+    private void UpdatePlayerCountText()
+    {
+        if (PlayerCountText != null)
+        {
+            PlayerCountText.text = $"Players: {players.Count}";
+        }
+        else
+        {
+            Debug.LogWarning("PlayerCountText is not assigned in the inspector.");
+        }
+    }
 }
+
+
 
