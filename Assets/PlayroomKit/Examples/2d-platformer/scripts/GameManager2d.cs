@@ -26,9 +26,7 @@ public class GameManager2d : MonoBehaviour
     private TextMeshProUGUI scoreTextPlayer1;
     [SerializeField]
     private TextMeshProUGUI scoreTextPlayer2;
-
     private TextMeshProUGUI selectedScoreText;
-
 
     private static bool playerJoined;
 
@@ -56,7 +54,7 @@ public class GameManager2d : MonoBehaviour
     {
         _playroomKit.InsertCoin(new InitOptions()
         {
-            maxPlayersPerRoom = 2,
+            maxPlayersPerRoom = 4,
             defaultPlayerStates = new()
             {
                 { "score", 0 },
@@ -169,7 +167,35 @@ public class GameManager2d : MonoBehaviour
         players.Add(player);
         playerGameObjects.Add(playerObj);
 
-        selectedScoreText = (players.Count == 1) ? scoreTextPlayer1 : scoreTextPlayer2;
+        // Assign score text based on player count
+
+        if(players.Count == 1)
+        {
+            selectedScoreText= scoreTextPlayer1;
+        }
+        else if (players.Count == 2)
+        {
+            selectedScoreText= scoreTextPlayer2;
+        }
+        else if (players.Count ==  3)
+        {
+            selectedScoreText= Instantiate(scoreTextPlayer1, scoreTextPlayer1.transform.parent);
+            selectedScoreText.name = "ScoreTextPlayer3";
+            selectedScoreText.text = "Score: 0";
+
+            RectTransform rectTransform = selectedScoreText.GetComponent<RectTransform>();
+            rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y - 50);
+        }
+        else if (players.Count == 4)
+        {
+            selectedScoreText= Instantiate(scoreTextPlayer2, scoreTextPlayer2.transform.parent);
+            selectedScoreText.name = "ScoreTextPlayer4";
+            selectedScoreText.text = "Score: 0";
+
+            RectTransform rectTransform = selectedScoreText.GetComponent<RectTransform>();
+            rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y - 100);
+        }
+
         playerObj.GetComponent<PlayerController2d>().scoreText = selectedScoreText;
 
         playerJoined = true;
