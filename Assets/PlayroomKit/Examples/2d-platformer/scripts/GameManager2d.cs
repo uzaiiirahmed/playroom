@@ -27,7 +27,8 @@ public class GameManager2d : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI scoreTextPlayer2;
     private TextMeshProUGUI selectedScoreText;
-    
+    [SerializeField]
+    private TextMeshProUGUI hellowWorldText;
     // <summary>
     // To display current player count
     /// </summary>
@@ -83,31 +84,34 @@ public class GameManager2d : MonoBehaviour
 
         _playroomKit.RpcRegister("ShootBullet", HandleScoreUpdate, "You shot a bullet!");
         _playroomKit.WaitForState("test", (s) => { Debug.LogWarning($"After waiting for test: {s}"); });
-    }
+
+        // Register Rpc for hello world display
+        _playroomKit.RpcRegister("DisplayHelloWorldRPC", (data, caller) => DisplayHelloWorldRPC(), "Displays Hello World on all players' screens");
 
     /// <summary>
     /// Update the Score UI of the player and sync.
     /// </summary>
     void HandleScoreUpdate(string data, string caller)
-    {
-        var player = _playroomKit.GetPlayer(caller);
-        Debug.Log($"Caller: {caller}, Player Name: {player?.GetProfile().name}, Data: {data}");
-
-        if (PlayerDict.TryGetValue(caller, out GameObject playerObj))
         {
-            var playerController = playerObj.GetComponent<PlayerController2d>();
-            if (playerController != null)
+            var player = _playroomKit.GetPlayer(caller);
+            Debug.Log($"Caller: {caller}, Player Name: {player?.GetProfile().name}, Data: {data}");
+
+            if (PlayerDict.TryGetValue(caller, out GameObject playerObj))
             {
-                playerController.scoreText.text = $"Score: {data}";
+                var playerController = playerObj.GetComponent<PlayerController2d>();
+                if (playerController != null)
+                {
+                    playerController.scoreText.text = $"Score: {data}";
+                }
+                else
+                {
+                    Debug.LogError($"PlayerController not found on GameObject for caller: {caller}");
+                }
             }
             else
             {
-                Debug.LogError($"PlayerController not found on GameObject for caller: {caller}");
+                Debug.LogError($"No GameObject found for caller: {caller}");
             }
-        }
-        else
-        {
-            Debug.LogError($"No GameObject found for caller: {caller}");
         }
     }
 
@@ -140,8 +144,21 @@ public class GameManager2d : MonoBehaviour
                     }
                 }
             }
+
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                DisplayHelloWorld();
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            _playroomKit.RpcCall("DisplayHelloWorldRPC", PlayroomKit.RpcMode.ALL, () =>
+            {
+                Debug.Log("RPC call to display 'Hello World' sent successfully.");
+            });
         }
     }
+    
 
 
     /// <summary>
@@ -252,6 +269,52 @@ public class GameManager2d : MonoBehaviour
             Debug.LogWarning("PlayerCountText is not assigned in the inspector.");
         }
     }
+
+
+
+    // RPC method to display "Hello World" on all players' screens
+    private void DisplayHelloWorldRPC()
+    {
+        foreach (var playerObj in playerGameObjects)
+        {
+            var playerController = playerObj.GetComponent<PlayerController2d>();
+            if (playerController != null)
+            {
+                DisplayHelloWorld();
+            }
+            else
+            {
+                Debug.LogError("PlayerController2d component not found on player object.");
+            }
+        }
+    }
+    
+    public void DisplayHelloWorld()
+    {
+        if (hellowWorldText != null)
+        {
+            hellowWorldText.text = "Hello, World!";
+            StartCoroutine(ClearHelloWorldAfterDelay(3f));
+
+        }
+        else
+        {
+            Debug.LogWarning("hellowWorldText is not assigned in the inspector.");
+        }
+    }
+
+    private System.Collections.IEnumerator ClearHelloWorldAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (hellowWorldText != null)
+        {
+            hellowWorldText.text = "";
+        }
+    }
+
+    
+
+    
 }
 
 
