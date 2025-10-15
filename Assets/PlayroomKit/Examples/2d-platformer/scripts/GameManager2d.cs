@@ -88,6 +88,9 @@ public class GameManager2d : MonoBehaviour
         // Register Rpc for hello world display
         _playroomKit.RpcRegister("DisplayHelloWorldRPC", (data, caller) => DisplayHelloWorldRPC(), "Displays Hello World on all players' screens");
 
+        // Register Rpc for sending an d recieving custom data types 
+        _playroomKit.RpcRegister("RecievedCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
+    
     /// <summary>
     /// Update the Score UI of the player and sync.
     /// </summary>
@@ -113,6 +116,9 @@ public class GameManager2d : MonoBehaviour
                 Debug.LogError($"No GameObject found for caller: {caller}");
             }
         }
+
+        // Register Rpc for sending and receiving custom data
+        _playroomKit.RpcRegister("ReceiveCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
     }
 
     /// <summary>
@@ -144,11 +150,6 @@ public class GameManager2d : MonoBehaviour
                     }
                 }
             }
-
-            if (Input.GetKeyDown(KeyCode.H))
-            {
-                DisplayHelloWorld();
-            }
         }
         if (Input.GetKeyDown(KeyCode.H))
         {
@@ -157,6 +158,13 @@ public class GameManager2d : MonoBehaviour
                 Debug.Log("RPC call to display 'Hello World' sent successfully.");
             });
         }
+
+        // Triggering an RPC to send custom data
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            SendCoolData();
+        } 
+
     }
     
 
@@ -227,7 +235,7 @@ public class GameManager2d : MonoBehaviour
         player.OnQuit(RemovePlayer);
 
         // Update player count UI
-          UpdatePlayerCountText();  
+        UpdatePlayerCountText();  
     }
 
     /// <summary>
@@ -312,10 +320,52 @@ public class GameManager2d : MonoBehaviour
         }
     }
 
-    
+    // < summary>
+    // Methode to send custom data as JSON string
+    // < /summary>
 
-    
+    private void SendCoolData()
+    {
+        IdkCoolClass coolData = new IdkCoolClass
+        {
+            coolScore = 42,
+            coolString = "This is a cool string!",
+            someList = new List<string> { "Item1", "Item2", "Item3" }
+        };
+
+        string jsonData = JsonUtility.ToJson(coolData);
+        Debug.Log($"$$$$ Sending Cool Data: {jsonData}");
+
+        _playroomKit.RpcCall("ReceiveCoolData", jsonData, PlayroomKit.RpcMode.ALL, () =>
+        {
+            Debug.Log("RPC call to send cool data sent successfully.");
+        });
+    }
+
+    //<summary>
+    // Methode to receive custom data as JSON string
+    //< /summary>
+    private void ReceiveCoolData(string jsonData)
+    {
+        Debug.Log($"$$$$ Received Cool Data: {jsonData}");
+        IdkCoolClass recievedData = JsonUtility.FromJson<IdkCoolClass>(jsonData);
+        if (recievedData != null)
+        {
+            Debug.Log($"Received Cool Score: CoolScore = {recievedData.coolScore}");
+        }
+        else
+        {
+            Debug.LogError("Failed to deserialize received cool data.");
+        }
+    }
 }
 
 
 
+[System.Serializable]
+public class IdkCoolClass
+{
+    public int coolScore;
+    public string coolString;
+    public List<string> someList;
+}
