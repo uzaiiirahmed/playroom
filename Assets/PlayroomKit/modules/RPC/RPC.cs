@@ -155,6 +155,11 @@ namespace Playroom
                 {
                     return JsonUtility.ToJson(quaternion);
                 }
+                else if(data.GetType().GetCustomAttributes(typeof(SerializableAttribute),false).Length > 0 ){
+                    return JsonUtility.ToJson(data);
+                }
+
+
                 else
                 {
                     return ConvertComplexToJson(data);

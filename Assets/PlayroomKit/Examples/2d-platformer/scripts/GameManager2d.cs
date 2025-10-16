@@ -5,6 +5,7 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using Debug = UnityEngine.Debug;
 using TMPro;
+using System.Threading;
 
 
 public class GameManager2d : MonoBehaviour
@@ -89,7 +90,7 @@ public class GameManager2d : MonoBehaviour
         _playroomKit.RpcRegister("DisplayHelloWorldRPC", (data, caller) => DisplayHelloWorldRPC(), "Displays Hello World on all players' screens");
 
         // Register Rpc for sending an d recieving custom data types 
-        _playroomKit.RpcRegister("RecievedCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
+        _playroomKit.RpcRegister("ReceiveCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
     
     /// <summary>
     /// Update the Score UI of the player and sync.
@@ -117,8 +118,7 @@ public class GameManager2d : MonoBehaviour
             }
         }
 
-        // Register Rpc for sending and receiving custom data
-        _playroomKit.RpcRegister("ReceiveCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
+        
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public class GameManager2d : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.H))
         {
-            _playroomKit.RpcCall("DisplayHelloWorldRPC", PlayroomKit.RpcMode.ALL, () =>
+            _playroomKit.RpcCall("DisplayHelloWorldRPC",null, PlayroomKit.RpcMode.ALL, () =>
             {
                 Debug.Log("RPC call to display 'Hello World' sent successfully.");
             });
@@ -333,10 +333,10 @@ public class GameManager2d : MonoBehaviour
             someList = new List<string> { "Item1", "Item2", "Item3" }
         };
 
-        string jsonData = JsonUtility.ToJson(coolData);
-        Debug.Log($"$$$$ Sending Cool Data: {jsonData}");
+        
+        Debug.Log($"$$$$ Sending Cool Data: {JsonUtility.ToJson(coolData)}");
 
-        _playroomKit.RpcCall("ReceiveCoolData", jsonData, PlayroomKit.RpcMode.ALL, () =>
+        _playroomKit.RpcCall("ReceiveCoolData", coolData, PlayroomKit.RpcMode.ALL, () =>
         {
             Debug.Log("RPC call to send cool data sent successfully.");
         });
@@ -348,15 +348,24 @@ public class GameManager2d : MonoBehaviour
     private void ReceiveCoolData(string jsonData)
     {
         Debug.Log($"$$$$ Received Cool Data: {jsonData}");
-        IdkCoolClass recievedData = JsonUtility.FromJson<IdkCoolClass>(jsonData);
-        if (recievedData != null)
+        try
         {
-            Debug.Log($"Received Cool Score: CoolScore = {recievedData.coolScore}");
+            IdkCoolClass recievedData = JsonUtility.FromJson<IdkCoolClass>(jsonData);
+            if (recievedData != null)
+            {
+                Debug.Log($"Received Cool Score: CoolScore = {recievedData.coolScore}");
+                Debug.Log($"Received List Count :{recievedData.someList?.Count ?? 0} ");
+            }
+            else
+            {
+                Debug.LogError("Failed to deserialize received cool data.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Debug.LogError("Failed to deserialize received cool data.");
+            Debug.LogError($"Error deserializing cool data: {ex.Message}");
         }
+        
     }
 }
 
