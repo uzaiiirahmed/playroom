@@ -326,21 +326,26 @@ public class GameManager2d : MonoBehaviour
 
     private void SendCoolData()
     {
-        IdkCoolClass coolData = new IdkCoolClass
-        {
-            coolScore = 42,
-            coolString = "This is a cool string!",
-            someList = new List<string> { "Item1", "Item2", "Item3" }
-        };
+     IdkCoolClass coolData = new IdkCoolClass
+     {
+         coolScore = 42,
+         coolString = "This is a cool string!",
+         someList = new List<string> { "Item1", "Item2", "Item3" }
+     } ;
 
-        
-        Debug.Log($"$$$$ Sending Cool Data: {JsonUtility.ToJson(coolData)}");
+        Debug.Log($"$$$$ Sending Cool Data: {coolData}");
 
-        _playroomKit.RpcCall("ReceiveCoolData", coolData, PlayroomKit.RpcMode.ALL, () =>
+        _playroomKit.RpcCall("ReceiveCoolData",coolData, PlayroomKit.RpcMode.ALL, () =>
         {
             Debug.Log("RPC call to send cool data sent successfully.");
         });
-    }
+    
+          _playroomKit.RpcCall("ReceiveCoolData", "test message", PlayroomKit.RpcMode.ALL, () =>
+            {
+                 Debug.Log("RPC call sent successfully.");
+            });
+    
+      }
 
     //<summary>
     // Methode to receive custom data as JSON string
@@ -354,6 +359,7 @@ public class GameManager2d : MonoBehaviour
             if (recievedData != null)
             {
                 Debug.Log($"Received Cool Score: CoolScore = {recievedData.coolScore}");
+                Debug.Log($"Received Cool String: {recievedData.coolString}");
                 Debug.Log($"Received List Count :{recievedData.someList?.Count ?? 0} ");
             }
             else

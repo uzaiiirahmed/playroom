@@ -18,6 +18,10 @@ namespace Playroom
             private static List<string> RpcCalledEvents = new();
             private static Dictionary<string, List<Action>> OnResponseCallbacks = new();
 
+            [Serializable]
+
+            private class Wrapper<T>{public T value;} 
+
             #region Constructors
 
             public RPC(PlayroomKit playroomKit)
@@ -108,6 +112,7 @@ namespace Playroom
             [MonoPInvokeCallback(typeof(Action<string>))]
             protected static void RpcRegisterCallBackHandler(string combinedData)
             {
+                Debug.Log($"[RPC Raw combinedData] {combinedData}");
                 try
                 {
                     JSONNode jsonNode = JSON.Parse(combinedData);
@@ -115,7 +120,16 @@ namespace Playroom
                     string eventName = jsonNode["eventName"];
                     string stringData = jsonNode["data"];
                     string senderID = jsonNode["senderId"];
-
+                   
+                    Debug.Log($"[RPC] Parsed - EventName: {eventName}, Data: '{stringData}', SenderID: {senderID}");
+                    
+                    if (!string.IsNullOrEmpty(stringData) && stringData.StartsWith("\"") && stringData.EndsWith("\""))
+                    {
+                        stringData = stringData.Substring(1, stringData.Length - 2);
+                        stringData = stringData.Replace("\\\"", "\"");
+                        stringData = stringData.Replace("\\\\", "\\");
+                    }
+                    
                     CallbackManager.InvokeRpcRegisterCallBack(eventName, stringData, senderID);
                 }
                 catch (Exception ex)
@@ -132,11 +146,14 @@ namespace Playroom
             {
                 if (data == null)
                 {
+                    Debug.Log("[RPC] ConvertToJson: data is null");
                     return null;
                 }
                 else if (data.GetType().IsPrimitive || data is string)
                 {
-                    return data.ToString();
+                    var result = JsonUtility.ToJson(new Wrapper<string>{ value = data.ToString()});
+                    Debug.Log($"[RPC] ConvertToJson (primitive/string): {result}");
+                    return JsonUtility.ToJson(new Wrapper<string>{ value = data.ToString()});
                 }
 
                 if (data is Vector2 vector2)
@@ -156,13 +173,17 @@ namespace Playroom
                     return JsonUtility.ToJson(quaternion);
                 }
                 else if(data.GetType().GetCustomAttributes(typeof(SerializableAttribute),false).Length > 0 ){
-                    return JsonUtility.ToJson(data);
+                    var result = JsonUtility.ToJson(data);
+                    Debug.Log($"[RPC] ConvertToJson (serializable): {result}");
+                    return result;
                 }
 
 
                 else
                 {
-                    return ConvertComplexToJson(data);
+                    var result = ConvertComplexToJson(data);
+                    Debug.Log($"[RPC] ConvertToJson (complex): {result}");
+                    return result;
                 }
             }
 
