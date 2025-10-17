@@ -118,17 +118,13 @@ namespace Playroom
                     JSONNode jsonNode = JSON.Parse(combinedData);
 
                     string eventName = jsonNode["eventName"];
-                    string stringData = jsonNode["data"];
+                    
+                    JSONNode dataNode = jsonNode["data"];
+                    
+                    string stringData = dataNode?.ToString()  ?? string.Empty; 
                     string senderID = jsonNode["senderId"];
                    
                     Debug.Log($"[RPC] Parsed - EventName: {eventName}, Data: '{stringData}', SenderID: {senderID}");
-                    
-                    if (!string.IsNullOrEmpty(stringData) && stringData.StartsWith("\"") && stringData.EndsWith("\""))
-                    {
-                        stringData = stringData.Substring(1, stringData.Length - 2);
-                        stringData = stringData.Replace("\\\"", "\"");
-                        stringData = stringData.Replace("\\\\", "\\");
-                    }
                     
                     CallbackManager.InvokeRpcRegisterCallBack(eventName, stringData, senderID);
                 }

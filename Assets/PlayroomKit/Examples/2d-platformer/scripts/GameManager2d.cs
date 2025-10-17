@@ -5,7 +5,6 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 using Debug = UnityEngine.Debug;
 using TMPro;
-using System.Threading;
 
 
 public class GameManager2d : MonoBehaviour
