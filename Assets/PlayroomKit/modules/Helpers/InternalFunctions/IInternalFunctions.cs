@@ -94,7 +94,6 @@ namespace Playroom
 
             string GetProfileWrapper(string playerID);
 
-            //
             void SetPersistentDataWrapper(string key, string value);
             void InsertPersistentDataWrapper(string key, string value);
 
@@ -112,6 +111,11 @@ namespace Playroom
 
             void ClearTurnsWrapper(Action callback = null);
 
+            #endregion
+    
+            #region Discord
+
+            void OpenDiscordInviteDialogInternalWrapper(Action callback = null);
             #endregion
         }
     }

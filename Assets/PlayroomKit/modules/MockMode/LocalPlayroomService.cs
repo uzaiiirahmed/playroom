@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Discord;
 using UnityEngine;
 
 namespace Playroom
@@ -208,6 +209,56 @@ namespace Playroom
             DebugLogger.LogWarning("[MockMode] Turn based API is currently not supported in local mode!");
         }
 
+        public string GetPlayroomToken()
+        {
+            DebugLogger.LogWarning("[MockMode] Playroom token is currently not supported in local mode!");
+            return default;
+        }
+
+        public void OpenDiscordInviteDialog(Action callback = null)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord invite dialog is currently not supported in local mode!");
+            callback?.Invoke();
+        }
+
+        public void StartDiscordPurchase(string skuId, Action<string> callback, Action<string> onError = null)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord purchase is currently not supported in local mode!");
+        }
+
+        public void GetDiscordSkus(Action<List<DiscordSku>> callback)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord SKUs are currently not supported in local mode!");
+            callback?.Invoke(new List<DiscordSku>());
+        }
+
+        public void GetDiscordEntitlements(Action<List<DiscordEntitlement>> callback)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord Entitlements are currently not supported in local mode!");
+            callback?.Invoke(new List<DiscordEntitlement>());
+        }
+
+        public void DiscordPriceFormat(float price, string currency, string locale, Action<string> callback)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord price formatting is currently not supported in local mode!");
+            callback?.Invoke($"${price}");
+        }
+
+        public void SubscribeDiscordEvent(SDKEvent eventName, Action<string> callback)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord events only work inside discord!");
+        }
+
+        public void OpenDiscordExternalLink(string url, Action<string> callback = null)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord external link is currently not supported in local mode!");
+            callback?.Invoke("true");
+        }
+
+        public void PatchDiscordUrlMappings(List<Mapping> mappings, PatchUrlMappingsConfig config = null)
+        {
+            DebugLogger.LogWarning("[MockMode] Patch Discord URL Mappings is currently not supported in local mode!");
+        }
         #endregion
     }
 }

@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using UBB;
+using Discord;
+using AOT;
 
 
 namespace Playroom
@@ -278,6 +280,12 @@ namespace Playroom
             return _playroomService.Me();
         }
 
+        public string GetPlayroomToken()
+        {
+            CheckPlayRoomInitialized();
+            return _playroomService.GetPlayroomToken();
+        }
+
         private void UnsubscribeOnQuit()
         {
             _playroomService.UnsubscribeOnQuit();
@@ -336,6 +344,76 @@ namespace Playroom
         {
             CheckPlayRoomInitialized();
             _playroomService.ClearTurns(callback);
+        }
+
+        #endregion
+
+        #region Discord Helpers
+        public static bool IsDiscordContext()
+        {
+            return Application.absoluteURL.Contains("discord");
+        }
+
+        private static bool ValidateDiscord(string warningMessage)
+        {
+            if (!IsDiscordContext())
+            {
+                UnityEngine.Debug.LogWarning($"[PlayroomDiscord] {warningMessage}");
+                return false;
+            }
+            return true;
+        }
+        #endregion
+
+        #region Discord    
+        public void OpenDiscordInviteDialog(Action callback = null)
+        {
+            CheckPlayRoomInitialized();
+            _playroomService.OpenDiscordInviteDialog(callback);
+        }
+
+        public void OpenDiscordExternalLink(string url, Action<string> callback = null)
+        {
+            CheckPlayRoomInitialized();
+            _playroomService.OpenDiscordExternalLink(url, callback);
+        }
+
+        public void StartDiscordPurchase(string skuId, Action<string> responseCallback, Action<string> onError = null)
+        {
+            CheckPlayRoomInitialized();
+            _playroomService.StartDiscordPurchase(skuId, responseCallback, onError);
+        }
+
+        public void GetDiscordSkus(Action<List<DiscordSku>> callback)
+        {
+            CheckPlayRoomInitialized();
+            _playroomService.GetDiscordSkus(callback);
+        }
+
+        public void GetDiscordEntitlements(Action<List<DiscordEntitlement>> callback)
+        {
+            CheckPlayRoomInitialized();
+            _playroomService.GetDiscordEntitlements(callback);
+        }
+
+        public void DiscordFormatPrice(DiscordSkuPrice price, string locale, Action<string> callback)
+        {
+            CheckPlayRoomInitialized();
+            _playroomService.DiscordPriceFormat(price.Amount, price.Currency, locale, callback);
+        }
+
+        public void SubscribeDiscordEvent(SDKEvent eventName, Action<string> callback)
+        {
+            CheckPlayRoomInitialized();
+            _playroomService.SubscribeDiscordEvent(eventName, callback);
+        }
+
+        public void PatchDiscordUrlMappings(List<Mapping> mappings, PatchUrlMappingsConfig config = null)
+        {
+            if (!ValidateDiscord("PatchUrlMappings only works inside discord."))
+                return;
+
+            _playroomService.PatchDiscordUrlMappings(mappings, config);
         }
 
         #endregion

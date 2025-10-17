@@ -26,9 +26,16 @@ public class GameManager2d : MonoBehaviour
     private TextMeshProUGUI scoreTextPlayer1;
     [SerializeField]
     private TextMeshProUGUI scoreTextPlayer2;
-
     private TextMeshProUGUI selectedScoreText;
-
+    [SerializeField]
+    private TextMeshProUGUI hellowWorldText;
+    // <summary>
+    // To display current player count
+    /// </summary>
+    
+    [Header("Player Count UI")]
+    [SerializeField]
+    private TextMeshProUGUI PlayerCountText;   
 
     private static bool playerJoined;
 
@@ -56,9 +63,7 @@ public class GameManager2d : MonoBehaviour
     {
         _playroomKit.InsertCoin(new InitOptions()
         {
-            // roomCode = roomCode,
-            persistentMode = true,
-            maxPlayersPerRoom = 2,
+            maxPlayersPerRoom = 4,
             defaultPlayerStates = new()
             {
                 { "score", 0 },
@@ -79,32 +84,40 @@ public class GameManager2d : MonoBehaviour
 
         _playroomKit.RpcRegister("ShootBullet", HandleScoreUpdate, "You shot a bullet!");
         _playroomKit.WaitForState("test", (s) => { Debug.LogWarning($"After waiting for test: {s}"); });
-    }
 
+        // Register Rpc for hello world display
+        _playroomKit.RpcRegister("DisplayHelloWorldRPC", (data, caller) => DisplayHelloWorldRPC(), "Displays Hello World on all players' screens");
+
+        // Register Rpc for sending an d recieving custom data types 
+        _playroomKit.RpcRegister("ReceiveCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
+    
     /// <summary>
     /// Update the Score UI of the player and sync.
     /// </summary>
     void HandleScoreUpdate(string data, string caller)
-    {
-        var player = _playroomKit.GetPlayer(caller);
-        Debug.Log($"Caller: {caller}, Player Name: {player?.GetProfile().name}, Data: {data}");
-
-        if (PlayerDict.TryGetValue(caller, out GameObject playerObj))
         {
-            var playerController = playerObj.GetComponent<PlayerController2d>();
-            if (playerController != null)
+            var player = _playroomKit.GetPlayer(caller);
+            Debug.Log($"Caller: {caller}, Player Name: {player?.GetProfile().name}, Data: {data}");
+
+            if (PlayerDict.TryGetValue(caller, out GameObject playerObj))
             {
-                playerController.scoreText.text = $"Score: {data}";
+                var playerController = playerObj.GetComponent<PlayerController2d>();
+                if (playerController != null)
+                {
+                    playerController.scoreText.text = $"Score: {data}";
+                }
+                else
+                {
+                    Debug.LogError($"PlayerController not found on GameObject for caller: {caller}");
+                }
             }
             else
             {
-                Debug.LogError($"PlayerController not found on GameObject for caller: {caller}");
+                Debug.LogError($"No GameObject found for caller: {caller}");
             }
         }
-        else
-        {
-            Debug.LogError($"No GameObject found for caller: {caller}");
-        }
+
+        
     }
 
     /// <summary>
@@ -137,7 +150,22 @@ public class GameManager2d : MonoBehaviour
                 }
             }
         }
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            _playroomKit.RpcCall("DisplayHelloWorldRPC",null, PlayroomKit.RpcMode.ALL, () =>
+            {
+                Debug.Log("RPC call to display 'Hello World' sent successfully.");
+            });
+        }
+
+        // Triggering an RPC to send custom data
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            SendCoolData();
+        } 
+
     }
+    
 
 
     /// <summary>
@@ -171,11 +199,42 @@ public class GameManager2d : MonoBehaviour
         players.Add(player);
         playerGameObjects.Add(playerObj);
 
-        selectedScoreText = (players.Count == 1) ? scoreTextPlayer1 : scoreTextPlayer2;
+        // Assign score text based on player count
+
+        if(players.Count == 1)
+        {
+            selectedScoreText= scoreTextPlayer1;
+        }
+        else if (players.Count == 2)
+        {
+            selectedScoreText= scoreTextPlayer2;
+        }
+        else if (players.Count ==  3)
+        {
+            selectedScoreText= Instantiate(scoreTextPlayer1, scoreTextPlayer1.transform.parent);
+            selectedScoreText.name = "ScoreTextPlayer3";
+            selectedScoreText.text = "Score: 0";
+
+            RectTransform rectTransform = selectedScoreText.GetComponent<RectTransform>();
+            rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y - 50);
+        }
+        else if (players.Count == 4)
+        {
+            selectedScoreText= Instantiate(scoreTextPlayer2, scoreTextPlayer2.transform.parent);
+            selectedScoreText.name = "ScoreTextPlayer4";
+            selectedScoreText.text = "Score: 0";
+
+            RectTransform rectTransform = selectedScoreText.GetComponent<RectTransform>();
+            rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y - 100);
+        }
+
         playerObj.GetComponent<PlayerController2d>().scoreText = selectedScoreText;
 
         playerJoined = true;
         player.OnQuit(RemovePlayer);
+
+        // Update player count UI
+        UpdatePlayerCountText();  
     }
 
     /// <summary>
@@ -189,11 +248,138 @@ public class GameManager2d : MonoBehaviour
             players.Remove(players.Find(p => p.id == playerID));
             playerGameObjects.Remove(player);
             Destroy(player);
+            
+            GameManager2d instance = FindObjectOfType<GameManager2d>();
+            if (instance != null)
+            {
+                instance.UpdatePlayerCountText();
+            }
+
         }
         else
         {
             Debug.LogWarning("Player is not in dictionary");
         }
     }
+
+    /// <summary>
+    /// Methode the player count text UI.
+    /// </summary>
+    private void UpdatePlayerCountText()
+    {
+        if (PlayerCountText != null)
+        {
+            PlayerCountText.text = $"Players: {players.Count}";
+        }
+        else
+        {
+            Debug.LogWarning("PlayerCountText is not assigned in the inspector.");
+        }
+    }
+
+
+
+    // RPC method to display "Hello World" on all players' screens
+    private void DisplayHelloWorldRPC()
+    {
+        foreach (var playerObj in playerGameObjects)
+        {
+            var playerController = playerObj.GetComponent<PlayerController2d>();
+            if (playerController != null)
+            {
+                DisplayHelloWorld();
+            }
+            else
+            {
+                Debug.LogError("PlayerController2d component not found on player object.");
+            }
+        }
+    }
+    
+    public void DisplayHelloWorld()
+    {
+        if (hellowWorldText != null)
+        {
+            hellowWorldText.text = "Hello, World!";
+            StartCoroutine(ClearHelloWorldAfterDelay(3f));
+
+        }
+        else
+        {
+            Debug.LogWarning("hellowWorldText is not assigned in the inspector.");
+        }
+    }
+
+    private System.Collections.IEnumerator ClearHelloWorldAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (hellowWorldText != null)
+        {
+            hellowWorldText.text = "";
+        }
+    }
+
+    // < summary>
+    // Methode to send custom data as JSON string
+    // < /summary>
+
+    private void SendCoolData()
+    {
+     IdkCoolClass coolData = new IdkCoolClass
+     {
+         coolScore = 42,
+         coolString = "This is a cool string!",
+         someList = new List<string> { "Item1", "Item2", "Item3" }
+     } ;
+
+        Debug.Log($"$$$$ Sending Cool Data: {coolData}");
+
+        _playroomKit.RpcCall("ReceiveCoolData",coolData, PlayroomKit.RpcMode.ALL, () =>
+        {
+            Debug.Log("RPC call to send cool data sent successfully.");
+        });
+    
+          _playroomKit.RpcCall("ReceiveCoolData", "test message", PlayroomKit.RpcMode.ALL, () =>
+            {
+                 Debug.Log("RPC call sent successfully.");
+            });
+    
+      }
+
+    //<summary>
+    // Methode to receive custom data as JSON string
+    //< /summary>
+    private void ReceiveCoolData(string jsonData)
+    {
+        Debug.Log($"$$$$ Received Cool Data: {jsonData}");
+        try
+        {
+            IdkCoolClass recievedData = JsonUtility.FromJson<IdkCoolClass>(jsonData);
+            if (recievedData != null)
+            {
+                Debug.Log($"Received Cool Score: CoolScore = {recievedData.coolScore}");
+                Debug.Log($"Received Cool String: {recievedData.coolString}");
+                Debug.Log($"Received List Count :{recievedData.someList?.Count ?? 0} ");
+            }
+            else
+            {
+                Debug.LogError("Failed to deserialize received cool data.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error deserializing cool data: {ex.Message}");
+        }
+        
+    }
 }
 
+
+
+[System.Serializable]
+public class IdkCoolClass
+{
+    public int coolScore;
+    public string coolString;
+    public List<string> someList;
+}

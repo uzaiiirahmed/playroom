@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using UBB;
 using UnityEngine;
+using Discord;
+
 
 #if UNITY_EDITOR
 using ParrelSync;
@@ -151,24 +153,24 @@ namespace Playroom
         public T GetState<T>(string key)
         {
             string result = _ubb.CallJs<string>("GetState", null, null, false, key);
-            
+
             if (typeof(T).IsEnum)
             {
                 try
                 {
                     result = result.Trim('\"', ' ');
-                    return (T)Enum.Parse(typeof(T), result, true); 
+                    return (T)Enum.Parse(typeof(T), result, true);
                 }
                 catch (ArgumentException)
                 {
                     Debug.LogError($"Failed to parse '{result}' to Enum of type {typeof(T)}");
-                    return default;  
+                    return default;
                 }
             }
-        
+
             return (T)Convert.ChangeType(result, typeof(T));
         }
-      
+
         public void WaitForState(string stateKey, Action<string> onStateSetCallback = null)
         {
             string callbackKey = $"WaitForState_{stateKey}";
@@ -205,7 +207,7 @@ namespace Playroom
             _ubb.CallJs("ResetPlayersStates", null, null, true, keysToExclude ?? Array.Empty<string>());
             onStatesReset?.Invoke();
         }
-        
+
         #endregion
 
         #region Persistent API
@@ -307,6 +309,56 @@ namespace Playroom
             PlayroomKit.IPlayroomBase.OnPlayerJoinWrapperCallback(playerId);
         }
 
+        public string GetPlayroomToken()
+        {
+            DebugLogger.LogWarning("[MockMode] Playroom token is currently not supported in browser mock mode!");
+            return string.Empty;
+        }
+
+        public void OpenDiscordInviteDialog(Action callback = null)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord invite dialog is currently not supported in browser mock mode!");
+            callback?.Invoke();
+        }
+
+        public void StartDiscordPurchase(string skuId, Action<string> callback, Action<string> onError = null)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord purchase is currently not supported in browser mock mode!");
+        }
+
+        public void GetDiscordSkus(Action<List<DiscordSku>> callback)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord SKUs are currently not supported in browser mock mode!");
+            callback?.Invoke(new List<DiscordSku>());
+        }
+
+        public void GetDiscordEntitlements(Action<List<DiscordEntitlement>> callback)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord SKUs are currently not supported in browser mock mode!");
+            callback?.Invoke(new List<DiscordEntitlement>());
+        }
+
+        public void DiscordPriceFormat(float price, string currency, string locale, Action<string> callback)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord SKUs are currently not supported in browser mock mode!");
+            callback?.Invoke("");
+        }
+
+        public void SubscribeDiscordEvent(SDKEvent eventName, Action<string> callback)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord events only work inside discord!");
+        }
+
+        public void OpenDiscordExternalLink(string url, Action<string> callback = null)
+        {
+            DebugLogger.LogWarning("[MockMode] Discord external link is currently not supported in browser mock mode!");
+            callback?.Invoke("true");
+        }
+
+        public void PatchDiscordUrlMappings(List<Mapping> mappings, PatchUrlMappingsConfig config = null)
+        {
+            DebugLogger.LogWarning("[MockMode] Patch Discord URL Mappings is currently not supported in browser mock mode!");
+        }
         #endregion
     }
 #endif

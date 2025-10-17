@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 
+
 public class PlayerController2d : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 5f;
@@ -13,6 +14,7 @@ public class PlayerController2d : MonoBehaviour
 
     [SerializeField] private GameObject bulletPrefab;
     public TextMeshProUGUI scoreText;
+
 
 
     public float dirX;
@@ -45,7 +47,7 @@ public class PlayerController2d : MonoBehaviour
 
             return score;
         }
-        return score;   
+        return score;
     }
 
     public void Jump()
@@ -64,4 +66,6 @@ public class PlayerController2d : MonoBehaviour
             isJumping = true;
         }
     }
+
+
 }

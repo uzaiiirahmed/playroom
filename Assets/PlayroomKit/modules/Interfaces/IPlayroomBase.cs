@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using AOT;
+using Discord;
 using UnityEngine;
-using Playroom;
+
 namespace Playroom
 {
     public partial class PlayroomKit
@@ -54,6 +55,8 @@ namespace Playroom
 
             public void UnsubscribeOnQuit();
 
+            public string GetPlayroomToken();
+
             #region TurnBased
 
             public string GetChallengeId();
@@ -66,6 +69,17 @@ namespace Playroom
 
             public void ClearTurns(Action callback = null);
 
+            #endregion
+
+            #region Discord
+            public void OpenDiscordInviteDialog(Action callback = null);
+            public void OpenDiscordExternalLink(string url, Action<string> callback = null);
+            public void StartDiscordPurchase(string skuId, Action<string> callback, Action<string> onError = null);
+            public void GetDiscordSkus(Action<List<DiscordSku>> callback);
+            public void GetDiscordEntitlements(Action<List<DiscordEntitlement>> callback);
+            public void DiscordPriceFormat(float price, string currency, string locale, Action<string> callback);
+            public void SubscribeDiscordEvent(SDKEvent eventName, Action<string> callback);
+            public void PatchDiscordUrlMappings(List<Mapping> mappings, PatchUrlMappingsConfig config = null);
             #endregion
 
 

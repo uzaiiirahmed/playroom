@@ -4,7 +4,7 @@ using AOT;
 using SimpleJSON;
 using System;
 using System.Collections.Generic;
-using OpenQA.Selenium.DevTools.V96.Browser;
+using Discord;
 
 namespace Playroom
 {
@@ -94,6 +94,11 @@ namespace Playroom
             {
                 CallbackManager.RegisterCallback(callback);
                 _interop.OnDisconnectWrapper(OnDisconnectCallbackHandler);
+            }
+
+            public string GetPlayroomToken()
+            {
+                return GetPlayroomTokenInternal();
             }
 
             #endregion
@@ -427,7 +432,133 @@ namespace Playroom
 
             #endregion
 
+            #region Discord API
+            public void PatchDiscordUrlMappings(List<Mapping> mappings, PatchUrlMappingsConfig config = null)
+            {
+                for (int i = 0; i < mappings.Count; i++)
+                {
+                    PatchDiscordUrlMappingsInternal(mappings[i].Prefix, mappings[i].Target);
+                }
+            }
+
+            public void OpenDiscordInviteDialog(Action callback = null)
+            {
+                CheckPlayRoomInitialized();
+                CallbackManager.RegisterCallback(callback, "discordInviteDialog");
+                _interop.OpenDiscordInviteDialogInternalWrapper(OpenDiscordInviteDialogCallbackInvoker);
+            }
+
+            public void OpenDiscordExternalLink(string url, Action<string> callback = null)
+            {
+                CheckPlayRoomInitialized();
+                CallbackManager.RegisterCallback(callback, "discordExternalLink");
+                OpenDiscordExternalLinkInternal(url, InvokeOpenDiscordExternalLinkCallback);
+            }
+
+            [MonoPInvokeCallback(typeof(Action<string>))]
+            private static void InvokeOpenDiscordExternalLinkCallback(string openedString)
+            {
+                CallbackManager.InvokeCallback("discordExternalLink", openedString);
+            }
+
+            [MonoPInvokeCallback(typeof(Action<string, string>))]
+            private static void StartDiscordPurchaseCallback(string skuId, string result)
+            {
+                CallbackManager.InvokeCallback(skuId, result);
+            }
+
+            [MonoPInvokeCallback(typeof(Action<string>))]
+            private static void OnErrorStartPurchase(string errorLog)
+            {
+                CallbackManager.InvokeCallback("onError", errorLog);
+            }
+
+            public void StartDiscordPurchase(string skuId, Action<string> callback = null, Action<string> onError = null)
+            {
+                CheckPlayRoomInitialized();
+                CallbackManager.RegisterCallback(callback, skuId);
+                CallbackManager.RegisterCallback(onError, "onError");
+
+                StartDiscordPurchaseInternal(skuId, StartDiscordPurchaseCallback, OnErrorStartPurchase);
+            }
+
+            public void GetDiscordSkus(Action<List<DiscordSku>> callback)
+            {
+                CheckPlayRoomInitialized();
+                CallbackManager.RegisterCallback(callback, "discordSkus");
+                GetDiscordSkusInternal(DiscordSkusCallback);
+            }
+
+            [MonoPInvokeCallback(typeof(Action<string>))]
+            private static void DiscordSkusCallback(string data)
+            {
+                try
+                {
+                    List<DiscordSku> list = DiscordSku.FromJSON(data);
+                    CallbackManager.InvokeCallback("discordSkus", list);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[Unity]: Error in Discord SKU: {e}");
+                    throw;
+                }
+            }
+
+            public void GetDiscordEntitlements(Action<List<DiscordEntitlement>> callback)
+            {
+                CheckPlayRoomInitialized();
+                CallbackManager.RegisterCallback(callback, "discordEntitlements");
+                GetDiscordEntitlementsInternal(DiscordEntitlementsCallback);
+            }
+
+            [MonoPInvokeCallback(typeof(Action<string>))]
+            private static void DiscordEntitlementsCallback(string data)
+            {
+                try
+                {
+                    List<DiscordEntitlement> list = DiscordEntitlement.FromJSON(data);
+                    CallbackManager.InvokeCallback("discordEntitlements", list);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[Unity]: Error in discord Entitlements: {e}");
+                    throw;
+                }
+            }
+
+            public void DiscordPriceFormat(float price, string currency, string locale, Action<string> callback)
+            {
+                CheckPlayRoomInitialized();
+                CallbackManager.RegisterCallback(callback, "formattedPrice");
+                DiscordPriceFormatInternal(price, currency, locale, DiscordPriceFormatCallbackInvoker);
+            }
+
+            [MonoPInvokeCallback(typeof(Action<string>))]
+            private static void DiscordPriceFormatCallbackInvoker(string formattedPrice)
+            {
+                CallbackManager.InvokeCallback("formattedPrice", formattedPrice);
+            }
+
+            public void SubscribeDiscordEvent(SDKEvent eventName, Action<string> callback)
+            {
+                CallbackManager.RegisterCallback(callback, eventName.ToString());
+                SubscribeDiscordInternal(eventName.ToString(), InvokeSubscribeDiscord);
+            }
+
+            [MonoPInvokeCallback(typeof(Action<string, string>))]
+            private static void InvokeSubscribeDiscord(string eventName, string data)
+            {
+                CallbackManager.InvokeCallback(eventName, data);
+            }
+            #endregion
+
             #region Callbacks
+
+            [MonoPInvokeCallback(typeof(Action))]
+            private static void OpenDiscordInviteDialogCallbackInvoker()
+            {
+                CallbackManager.InvokeCallback("discordInviteDialog");
+            }
 
             [MonoPInvokeCallback(typeof(Action))]
             private static void InvokeStartMatchmakingCallback()
@@ -475,7 +606,6 @@ namespace Playroom
                 _onError?.Invoke(error);
                 Debug.LogException(new Exception(error));
             }
-
             #endregion
         }
     }

@@ -284,6 +284,12 @@ namespace Playroom
                 ClearTurnsInternal(callback);
             }
 
+            public void OpenDiscordInviteDialogInternalWrapper(Action callback = null)
+            {
+                OpenDiscordInviteDialogInternal(callback);
+            }
+
+           
             #endregion
         }
     }

@@ -152,7 +152,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c26654afb35e664fd9b1f083ce35c749, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentGameState: 0
 --- !u!4 &667855125
 Transform:
   m_ObjectHideFlags: 0
@@ -1095,6 +1094,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1661243507}
     - target: {fileID: 8899696337967424923, guid: 1b30fa3a265114a45a7e23165a20aecc, type: 3}
+      propertyPath: browser
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8899696337967424923, guid: 1b30fa3a265114a45a7e23165a20aecc, type: 3}
       propertyPath: webDriverDirectory
       value: Assets/
       objectReference: {fileID: 0}
@@ -1104,7 +1107,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8987662522597341863, guid: 1b30fa3a265114a45a7e23165a20aecc, type: 3}
       propertyPath: mockMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8987662522597341863, guid: 1b30fa3a265114a45a7e23165a20aecc, type: 3}
       propertyPath: insertCoinCaller

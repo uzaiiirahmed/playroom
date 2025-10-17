@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Discord;
 using UnityEngine;
 
 namespace Playroom
@@ -101,6 +102,19 @@ namespace Playroom
             }
         }
 
+        public static void InvokeCallback(string key, bool someBool)
+        {
+            if (callbacks.TryGetValue(key, out Delegate callback))
+            {
+                if (callback is Action<bool> action) action?.Invoke(someBool);
+                else
+                    Debug.LogError(
+                        $"Callback with key {key} is of unsupported type or incorrect number of arguments: {someBool}!");
+            }
+        }
+        
+
+
         public static void InvokeCallback(string key, List<TurnData> turnData)
         {
             if (callbacks.TryGetValue(key, out Delegate callback))
@@ -109,6 +123,28 @@ namespace Playroom
                 else
                     Debug.LogError(
                         $"Callback with key {key} is of unsupported type or incorrect number of arguments: {turnData}!");
+            }
+        }
+        
+        public static void InvokeCallback(string key, List<DiscordEntitlement> entitlements)
+        {
+            if (callbacks.TryGetValue(key, out Delegate callback))
+            {
+                if (callback is Action<List<DiscordEntitlement>> action) action?.Invoke(entitlements);
+                else
+                    Debug.LogError(
+                        $"Callback with key {key} is of unsupported type or incorrect number of arguments: {entitlements}!");
+            }
+        }
+
+        public static void InvokeCallback(string key, List<DiscordSku> skus)
+        {
+            if (callbacks.TryGetValue(key, out Delegate callback))
+            {
+                if (callback is Action<List<DiscordSku>> action) action?.Invoke(skus);
+                else
+                    Debug.LogError(
+                        $"Callback with key {key} is of unsupported type or incorrect number of arguments: {skus}!");
             }
         }
 
