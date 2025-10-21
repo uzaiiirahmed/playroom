@@ -31,6 +31,15 @@ public class GameManager2d : MonoBehaviour
 
     private PlayroomKit _playroomKit;
     [System.Serializable] public class ScoreData { public int value; } 
+    [System.Serializable]public class TestDictionaryData{
+        public string message;
+        public string playerID;
+        public int randomNumber;
+        public NestedData nested;
+    }
+    [System.Serializable]public class NestedData{
+        public string inner;
+    }
 
     void Awake()
     {
@@ -60,7 +69,8 @@ public class GameManager2d : MonoBehaviour
         _playroomKit.RpcRegister("ShootBullet", HandleScoreUpdate, "You shot a bullet!");
         _playroomKit.RpcRegister("DisplayHelloWorldRPC", (data, caller) => DisplayHelloWorldRPC(data, caller), "Displays Hello World on all players' screens");
         _playroomKit.RpcRegister("ReceiveCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
-
+        _playroomKit.RpcRegister("TestDictionaryRPC", (data, caller) => TestDictionaryRPC(data, caller), "Test Dictionary");
+        
         void HandleScoreUpdate(string data, string caller)
         {
             var player = _playroomKit.GetPlayer(caller);
@@ -118,12 +128,23 @@ public class GameManager2d : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.H))
+
+        if (Input.GetKeyDown(KeyCode.P))
         {
-            _playroomKit.RpcCall("DisplayHelloWorldRPC", "Hello, World!", PlayroomKit.RpcMode.ALL, () =>
+            var myId = _playroomKit.MyPlayer()?.id ?? "unknown";
+            TestDictionaryData testData = new TestDictionaryData
             {
-                Debug.Log("RPC call to display 'Hello World' sent successfully.");
-            });
+            message = "Hello, World!",
+            playerID = myId,
+            randomNumber = UnityEngine.Random.Range(1, 100),
+            nested = new NestedData { inner = "value" }
+            };
+
+
+            _playroomKit.RpcCall("TestDictionaryRPC", testData, PlayroomKit.RpcMode.ALL, () =>
+        {
+            Debug.Log("RPC call to send test dictionary sent successfully.");
+        });
         }
 
         if (Input.GetKeyDown(KeyCode.C))
@@ -145,6 +166,8 @@ public class GameManager2d : MonoBehaviour
                 () => { Debug.Log("Shooting bullet"); });
         }
     }
+
+    
     public void AddPlayer(PlayroomKit.Player player)
     {
         Vector3 spawnPos = new(Random.Range(-4, 4), Random.Range(1, 5), 0);
@@ -263,6 +286,23 @@ public class GameManager2d : MonoBehaviour
             Debug.LogError($"Error deserializing cool data: {ex.Message}");
         }
     }
+
+    private void TestDictionaryRPC(string data, string caller)
+    {
+    Debug.Log($"Test Dictionary RPC called by {caller} with data: {data}");
+    try
+    {
+        var receivedData = JsonUtility.FromJson<TestDictionaryData>(data);
+        Debug.Log($"[Dictionary Test] Message: {receivedData.message}");
+        Debug.Log($"[Dictionary Test] PlayerID: {receivedData.playerID}");
+        Debug.Log($"[Dictionary Test] Random: {receivedData.randomNumber}");
+        Debug.Log($"[Dictionary Test] Nested: {receivedData.nested.inner}");
+    }
+    catch (Exception ex)
+    {
+        Debug.LogError($"Error deserializing dictionary data: {ex.Message}");
+    }
+}
 }
 
 [System.Serializable]
