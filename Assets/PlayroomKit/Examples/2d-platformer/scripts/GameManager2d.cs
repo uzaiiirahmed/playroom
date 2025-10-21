@@ -58,7 +58,7 @@ public class GameManager2d : MonoBehaviour
         Initialize();
 
         _playroomKit.RpcRegister("ShootBullet", HandleScoreUpdate, "You shot a bullet!");
-        _playroomKit.RpcRegister("DisplayHelloWorldRPC", (data, caller) => DisplayHelloWorldRPC(), "Displays Hello World on all players' screens");
+        _playroomKit.RpcRegister("DisplayHelloWorldRPC", (data, caller) => DisplayHelloWorldRPC(data, caller), "Displays Hello World on all players' screens");
         _playroomKit.RpcRegister("ReceiveCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
 
         void HandleScoreUpdate(string data, string caller)
@@ -120,7 +120,7 @@ public class GameManager2d : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.H))
         {
-            _playroomKit.RpcCall("DisplayHelloWorldRPC", null, PlayroomKit.RpcMode.ALL, () =>
+            _playroomKit.RpcCall("DisplayHelloWorldRPC", "Hello, World!", PlayroomKit.RpcMode.ALL, () =>
             {
                 Debug.Log("RPC call to display 'Hello World' sent successfully.");
             });
@@ -210,23 +210,11 @@ public class GameManager2d : MonoBehaviour
         }
     }
 
-    private void DisplayHelloWorldRPC()
-    {
-        foreach (var playerObj in playerGameObjects)
-        {
-            var playerController = playerObj.GetComponent<PlayerController2d>();
-            if (playerController != null)
-            {
-                DisplayHelloWorld();
-            }
-        }
-    }
-
-    public void DisplayHelloWorld()
+    private void DisplayHelloWorldRPC(string data, string caller)
     {
         if (hellowWorldText != null)
         {
-            hellowWorldText.text = "Hello, World!";
+            hellowWorldText.text = data;
             StartCoroutine(ClearHelloWorldAfterDelay(3f));
         }
     }
