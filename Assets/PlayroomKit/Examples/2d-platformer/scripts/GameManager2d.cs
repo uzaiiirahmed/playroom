@@ -180,33 +180,27 @@ public class GameManager2d : MonoBehaviour
         Debug.Log($" Added player: {playerName}");
     }
 
-    private static void RemovePlayer(string playerID)
+    private void RemovePlayer(string playerID)
+{
+    if (PlayerDict.TryGetValue(playerID, out GameObject player))
     {
-        if (PlayerDict.TryGetValue(playerID, out GameObject player))
-        {
-            PlayerDict.Remove(playerID);
-            players.Remove(players.Find(p => p.id == playerID));
-            playerGameObjects.Remove(player);
-            Destroy(player);
+        PlayerDict.Remove(playerID);
+        players.Remove(players.Find(p => p.id == playerID));
+        playerGameObjects.Remove(player);
+        Destroy(player);
 
-            GameManager2d instance = FindObjectOfType<GameManager2d>();
-            if (instance != null)
-            {
-                if (instance.playerScoreTexts.ContainsKey(playerID))
-                {
-                    Destroy(instance.playerScoreTexts[playerID].gameObject);
-                    instance.playerScoreTexts.Remove(playerID);
-                }
-                instance.UpdatePlayerCountText();
-            }
-
-            Debug.Log($"Player {playerID} removed.");
-        }
-        else
+        if (playerScoreTexts.ContainsKey(playerID))
         {
-            Debug.LogWarning("Player not found in dictionary");
+            Destroy(playerScoreTexts[playerID].gameObject);
+            playerScoreTexts.Remove(playerID);
         }
+        UpdatePlayerCountText();
     }
+    else
+    {
+        Debug.LogWarning("Player not found in dictionary");
+    }
+}
 
     private void UpdatePlayerCountText()
     {
