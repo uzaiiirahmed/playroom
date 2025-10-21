@@ -68,7 +68,7 @@ public class GameManager2d : MonoBehaviour
 
         _playroomKit.RpcRegister("ShootBullet", HandleScoreUpdate, "You shot a bullet!");
         _playroomKit.RpcRegister("DisplayHelloWorldRPC", (data, caller) => DisplayHelloWorldRPC(data, caller), "Displays Hello World on all players' screens");
-        _playroomKit.RpcRegister("ReceiveCoolData", (data, caller) => ReceiveCoolData(data), "Receives cool data as JSON string");
+        _playroomKit.RpcRegister("ReceiveplayerRPCData", (data, caller) => ReceiveplayerRPCData(data), "Receives playerRPC data as JSON string");
         _playroomKit.RpcRegister("TestDictionaryRPC", (data, caller) => TestDictionaryRPC(data, caller), "Test Dictionary");
         
         void HandleScoreUpdate(string data, string caller)
@@ -126,7 +126,17 @@ public class GameManager2d : MonoBehaviour
                     playerObj.GetComponent<SpriteRenderer>().color = color;
                 }
             }
+
+            
         }
+
+        if (Input.GetKeyDown(KeyCode.H))
+{
+    _playroomKit.RpcCall("DisplayHelloWorldRPC", "Hello, World!", PlayroomKit.RpcMode.ALL, () =>
+    {
+        Debug.Log("RPC call to display 'Hello World' sent successfully.");
+    });
+}
 
 
         if (Input.GetKeyDown(KeyCode.P))
@@ -149,7 +159,7 @@ public class GameManager2d : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.C))
         {
-            SendCoolData();
+            SendplayerRPCData();
         }
     }
 
@@ -251,39 +261,39 @@ public class GameManager2d : MonoBehaviour
         }
     }
 
-    private void SendCoolData()
+    private void SendplayerRPCData()
     {
-        IdkCoolClass coolData = new()
+        playerRPCClass playerRPCData = new()
         {
-            coolScore = 42,
-            coolString = "This is a cool string!",
+            playerRPCScore = 42,
+            playerRPCString = "This is a playerRPC string!",
             someList = new List<string> { "Item1", "Item2", "Item3" }
         };
 
-        Debug.Log($"$$$$ Sending Cool Data: {coolData}");
+        Debug.Log($"$$$$ Sending playerRPC Data: {playerRPCData}");
 
-        _playroomKit.RpcCall("ReceiveCoolData", coolData, PlayroomKit.RpcMode.ALL, () =>
+        _playroomKit.RpcCall("ReceiveplayerRPCData", playerRPCData, PlayroomKit.RpcMode.ALL, () =>
         {
-            Debug.Log("RPC call to send cool data sent successfully.");
+            Debug.Log("RPC call to send playerRPC data sent successfully.");
         });
     }
 
-    private void ReceiveCoolData(string jsonData)
+    private void ReceiveplayerRPCData(string jsonData)
     {
-        Debug.Log($"$$$$ Received Cool Data: {jsonData}");
+        Debug.Log($"$$$$ Received playerRPC Data: {jsonData}");
         try
         {
-            IdkCoolClass receivedData = JsonUtility.FromJson<IdkCoolClass>(jsonData);
+            playerRPCClass receivedData = JsonUtility.FromJson<playerRPCClass>(jsonData);
             if (receivedData != null)
             {
-                Debug.Log($"Received Cool Score: {receivedData.coolScore}");
-                Debug.Log($"Received Cool String: {receivedData.coolString}");
+                Debug.Log($"Received playerRPC Score: {receivedData.playerRPCScore}");
+                Debug.Log($"Received playerRPC String: {receivedData.playerRPCString}");
                 Debug.Log($"Received List Count: {receivedData.someList?.Count ?? 0}");
             }
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Error deserializing cool data: {ex.Message}");
+            Debug.LogError($"Error deserializing playerRPC data: {ex.Message}");
         }
     }
 
@@ -306,9 +316,9 @@ public class GameManager2d : MonoBehaviour
 }
 
 [System.Serializable]
-public class IdkCoolClass
+public class playerRPCClass
 {
-    public int coolScore;
-    public string coolString;
+    public int playerRPCScore;
+    public string playerRPCString;
     public List<string> someList;
 }
