@@ -121,9 +121,9 @@ namespace Playroom
                     
                     JSONNode dataNode = jsonNode["data"];
                     
-                    string stringData = dataNode?.ToString()  ?? string.Empty; 
+                    string stringData = dataNode?.ToString()  ?? string.Empty;
                     string senderID = jsonNode["senderId"];
-                   
+                    
                     Debug.Log($"[RPC] Parsed - EventName: {eventName}, Data: '{stringData}', SenderID: {senderID}");
                     
                     CallbackManager.InvokeRpcRegisterCallBack(eventName, stringData, senderID);
@@ -147,9 +147,9 @@ namespace Playroom
                 }
                 else if (data.GetType().IsPrimitive || data is string)
                 {
-                    var result = JsonUtility.ToJson(new Wrapper<string>{ value = data.ToString()});
+                    var result = JsonUtility.ToJson(new Wrapper<string> { value = data.ToString() });
                     Debug.Log($"[RPC] ConvertToJson (primitive/string): {result}");
-                    return JsonUtility.ToJson(new Wrapper<string>{ value = data.ToString()});
+                    return result;
                 }
 
                 if (data is Vector2 vector2)
@@ -168,13 +168,27 @@ namespace Playroom
                 {
                     return JsonUtility.ToJson(quaternion);
                 }
-                else if(data.GetType().GetCustomAttributes(typeof(SerializableAttribute),false).Length > 0 ){
-                    var result = JsonUtility.ToJson(data);
-                    Debug.Log($"[RPC] ConvertToJson (serializable): {result}");
+                if (data is IDictionary || data is IEnumerable)
+                {
+                    var result = ConvertComplexToJson(data);
+                    Debug.Log($"[RPC] ConvertToJson (complex/dictionary): {result}");
                     return result;
                 }
+                else if (Attribute.IsDefined(data.GetType(), typeof(SerializableAttribute)))
 
-
+                {
+                    try
+                        {
+                            var result = JsonUtility.ToJson(data);
+                            Debug.Log($"[RPC] ConvertToJson (serializable): {result}");
+                            return result;
+                        }
+                        catch (Exception e)
+                        {
+                        Debug.LogError($"[RPC] JSON serialization failed: {e.Message}");
+                        return "{}";
+                        }
+                }
                 else
                 {
                     var result = ConvertComplexToJson(data);
@@ -190,9 +204,19 @@ namespace Playroom
                     JSONObject dictNode = new JSONObject();
                     foreach (DictionaryEntry entry in dictionary)
                     {
-                        dictNode[entry.Key.ToString()] = ConvertToJson(entry.Value);
-                    }
+                        string key = entry.Key.ToString();
+                        string valueJson = ConvertToJson(entry.Value);
 
+                        try
+                        {
+                            var parsedNode = JSON.Parse(valueJson);
+                            dictNode[key] = parsedNode ?? valueJson;
+                        }
+                        catch
+                        {
+                            dictNode[key] = valueJson ;
+                        }
+                    }
                     return dictNode.ToString();
                 }
                 else if (data is IEnumerable enumerable)
@@ -200,7 +224,15 @@ namespace Playroom
                     JSONArray arrayNode = new JSONArray();
                     foreach (object element in enumerable)
                     {
-                        arrayNode.Add(ConvertToJson(element));
+                        string elementJson = ConvertToJson(element);
+                        try {
+                            var parsedElement = JSON.Parse(elementJson);
+                            arrayNode.Add(parsedElement ?? elementJson); 
+                            }
+                        catch
+                        {
+                            arrayNode.Add(elementJson);
+                        }
                     }
 
                     return arrayNode.ToString();
@@ -208,7 +240,7 @@ namespace Playroom
                 else
                 {
                     Debug.Log($"{data} is '{data.GetType()}' which is currently not supported by RPC!");
-                    return JSON.Parse("{}").ToString();
+                    return "{}";
                 }
             }
 

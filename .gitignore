@@ -25,6 +25,7 @@
 
 # Visual Studio cache directory
 .vs/
+.vsconfig
 
 # Gradle cache directory
 .gradle/
@@ -86,3 +87,7 @@ Assets/msedgedriver.exe
 Assets/msedgedriver.exe.meta
 Assets/PlayroomKit/src/frameworks copy.ts
 Assets/PlayroomKit/src/frameworks copy.ts.meta
+
+# Excluded folders
+.vscode/settings.json
+.vsconfig/
