@@ -270,7 +270,7 @@ public class GameManager2d : MonoBehaviour
             someList = new List<string> { "Item1", "Item2", "Item3" }
         };
 
-        Debug.Log($"$$$$ Sending playerRPC Data: {playerRPCData}");
+        Debug.Log($"Sending playerRPC Data: {playerRPCData}");
 
         _playroomKit.RpcCall("ReceiveplayerRPCData", playerRPCData, PlayroomKit.RpcMode.ALL, () =>
         {
@@ -280,7 +280,7 @@ public class GameManager2d : MonoBehaviour
 
     private void ReceiveplayerRPCData(string jsonData)
     {
-        Debug.Log($"$$$$ Received playerRPC Data: {jsonData}");
+        Debug.Log($"Received playerRPC Data: {jsonData}");
         try
         {
             playerRPCClass receivedData = JsonUtility.FromJson<playerRPCClass>(jsonData);
